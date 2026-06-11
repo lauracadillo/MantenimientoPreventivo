@@ -230,7 +230,7 @@ function openDetalle(siteId) {
 
   document.getElementById('detalle-title').textContent = item['Site Id'] + ' · ' + item['Site Name'];
   document.getElementById('detalle-subtitle').textContent = 'FLM: ' + item['FLM'] + ' · Mes programado: ' + item['MES_PROGRA'];
-
+  document.getElementById('btn-volver').style.display = 'block';
   document.getElementById('detalle-grid').innerHTML = `
     <div class="detalle-card">
       <h3>Identificación</h3>
@@ -270,11 +270,12 @@ function openDetalle(siteId) {
   document.getElementById('view-detalle').classList.add('active');
 }
 
-// Boton salir de la vista de detalles
 function switchView(view) {
   if (view === 'dashboard') {
     document.getElementById('view-detalle').classList.remove('active');
     document.getElementById('detalle-grid').innerHTML = '';
+    document.getElementById('detalle-title').textContent = '';
+    document.getElementById('detalle-subtitle').textContent = '';
   }
 }
 
