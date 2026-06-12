@@ -706,7 +706,7 @@ font-size: 13px;
   transition: background 0.15s, color 0.15s;
 }
 .topbar-tab:hover {
-  color: var(--border);
+  color: var(--white);
   text-decoration: underline;
 }
 .topbar-tab.active {

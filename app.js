@@ -289,18 +289,17 @@ function switchTab(tab) {
 
   // Ocultar/mostrar secciones de la vista principal
   const isMain = tab === 'Plan 2026';
+  document.getElementById('top-page-header').style.display = isMain ? '' : 'none';
   document.querySelector('.kpi-grid').style.display = isMain ? '' : 'none';
   document.querySelector('.table-card').style.display = isMain ? '' : 'none';
   document.getElementById('view-detalle').style.display = isMain ? '' : 'none';
 
   if (tab === 'costos') {
-    document.getElementById('top-page-header').style.display = 'none';
     document.getElementById('view-costos').style.display = 'block';
     
     renderCostos();
   }
   if (tab === 'reprogramar') {
-    document.getElementById('top-page-header').style.display = 'none';
     document.getElementById('view-reprogramar').style.display = 'block';
   }
 }
