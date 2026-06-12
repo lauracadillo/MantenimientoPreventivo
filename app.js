@@ -307,67 +307,107 @@ function switchTab(tab) {
 function renderCostos() {
   if (!DATA.costos || !DATA.mantenimientos) return;
 
-  // Lookup costos por tipo
   const costosMap = {};
   DATA.costos.forEach(item => {
     costosMap[item['llave zona']] = Number(item['Costo 2026']) || 0;
   });
 
-  // Trimestres
   const trimestres = {
-    'T1': [1, 2, 3],
-    'T2': [4, 5, 6],
     'T3': [7, 8, 9],
     'T4': [10, 11, 12]
   };
 
-  const resumen = Object.entries(trimestres).map(([trim, meses]) => {
-    const sitesDelTrim = DATA.mantenimientos.filter(x => meses.includes(Number(x['MES_PROGRA'])));
-    const antes = sitesDelTrim.reduce((sum, x) => sum + (costosMap[x['llave zona']] || 0), 0);
-    const despues = sitesDelTrim.filter(x => !x['revision']).reduce((sum, x) => sum + (costosMap[x['llave zona']] || 0), 0);
-    const diff = despues - antes;
-    return { trim, antes, despues, diff };
-  });
+  // Obtener zonas únicas presentes en costos
+  const zonas = [...new Set(DATA.costos.map(c => c['llave zona']))].sort();
 
-  const totalAntes = resumen.reduce((s, r) => s + r.antes, 0);
-  const totalDespues = resumen.reduce((s, r) => s + r.despues, 0);
-  const totalDiff = totalDespues - totalAntes;
-
-  const diffColor = diff => diff < 0 ? 'var(--success)' : diff > 0 ? 'var(--danger)' : 'var(--text-muted)';
   const fmt = n => 'S/ ' + Math.abs(n).toLocaleString();
   const fmtDiff = n => (n < 0 ? '▼ ' : n > 0 ? '▲ ' : '') + fmt(n);
+  const diffColor = diff => diff < 0 ? 'var(--success)' : diff > 0 ? 'var(--danger)' : 'var(--text-muted)';
 
-  // Inyectar tabla trimestral
+  // Construir matriz: meses x zonas, separado por trimestre
+  let tablaHTML = '';
+
+  Object.entries(trimestres).forEach(([trim, meses]) => {
+    // Filas por mes, columnas por zona
+    const filasMes = meses.map(mes => {
+      const sitesDelMes = DATA.mantenimientos.filter(x => Number(x['MES_PROGRA']) === mes);
+
+      let totalMesAntes = 0, totalMesDespues = 0;
+      const celdas = zonas.map(zona => {
+        const sitesZona = sitesDelMes.filter(x => x['llave zona'] === zona);
+        const antes = sitesZona.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
+        const despues = sitesZona.filter(x => !x['revision']).reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
+        totalMesAntes += antes;
+        totalMesDespues += despues;
+        const diff = despues - antes;
+        return `<td style="font-family:'DM Mono',monospace;font-size:12px">
+                  <div>${fmt(antes)}</div>
+                  <div style="color:${diffColor(diff)};font-weight:600">${fmtDiff(diff)}</div>
+                </td>`;
+      }).join('');
+
+      const diffMes = totalMesDespues - totalMesAntes;
+      return `
+        <tr>
+          <td style="font-weight:500">Mes ${mes}</td>
+          ${celdas}
+          <td style="font-family:'DM Mono',monospace;font-weight:600;font-size:12px">
+            <div>${fmt(totalMesAntes)}</div>
+            <div style="color:${diffColor(diffMes)}">${fmtDiff(diffMes)}</div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tablaHTML += `
+      <tr style="background:var(--bg-secondary)">
+        <td colspan="${zonas.length + 2}" style="font-weight:700;padding:8px">${trim}</td>
+      </tr>
+      ${filasMes}
+    `;
+  });
+
+  // Totales generales por zona
+  let granTotalAntes = 0, granTotalDespues = 0;
+  const totalesZona = zonas.map(zona => {
+    const sitesZona = DATA.mantenimientos.filter(x => x['llave zona'] === zona);
+    const antes = sitesZona.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
+    const despues = sitesZona.filter(x => !x['revision']).reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
+    granTotalAntes += antes;
+    granTotalDespues += despues;
+    const diff = despues - antes;
+    return `<td style="font-family:'DM Mono',monospace;font-weight:600;font-size:12px">
+              <div>${fmt(antes)}</div>
+              <div style="color:${diffColor(diff)}">${fmtDiff(diff)}</div>
+            </td>`;
+  }).join('');
+
+  const granDiff = granTotalDespues - granTotalAntes;
+
   document.getElementById('costos-trimestral').innerHTML = `
     <table>
       <thead>
         <tr>
-          <th>Trimestre</th>
-          <th>Antes</th>
-          <th>Después</th>
-          <th>Diferencia</th>
+          <th>Etiquetas de fila</th>
+          ${zonas.map(z => `<th>${z}</th>`).join('')}
+          <th>Total general</th>
         </tr>
       </thead>
       <tbody>
-        ${resumen.map(r => `
-          <tr>
-            <td style="font-weight:500">${r.trim}</td>
-            <td style="font-family:'DM Mono',monospace">${fmt(r.antes)}</td>
-            <td style="font-family:'DM Mono',monospace">${fmt(r.despues)}</td>
-            <td style="font-family:'DM Mono',monospace;color:${diffColor(r.diff)};font-weight:600">${fmtDiff(r.diff)}</td>
-          </tr>
-        `).join('')}
-        <tr style="border-top:2px solid var(--border);font-weight:600">
-          <td>Total anual</td>
-          <td style="font-family:'DM Mono',monospace">S/ ${totalAntes.toLocaleString()}</td>
-          <td style="font-family:'DM Mono',monospace">S/ ${totalDespues.toLocaleString()}</td>
-          <td style="font-family:'DM Mono',monospace;color:${diffColor(totalDiff)};font-weight:600">${fmtDiff(totalDiff)}</td>
+        ${tablaHTML}
+        <tr style="border-top:2px solid var(--border);font-weight:700">
+          <td>Total general</td>
+          ${totalesZona}
+          <td style="font-family:'DM Mono',monospace;font-size:12px">
+            <div>${fmt(granTotalAntes)}</div>
+            <div style="color:${diffColor(granDiff)}">${fmtDiff(granDiff)}</div>
+          </td>
         </tr>
       </tbody>
     </table>
   `;
 
-  // Tabla de costos por tipo (la que ya tenías)
+  // Tabla de costos por tipo
   const tbody = document.getElementById('costos-body');
   let totalGeneral = 0;
   const filas = DATA.costos.map(item => {
@@ -388,7 +428,6 @@ function renderCostos() {
     </tr>
   `;
 }
-
 function autocompleteSite() {
   const id = document.getElementById('repro-siteid').value.trim();
   const item = DATA.mantenimientos?.find(x => x['Site Id'] === id);
