@@ -317,91 +317,53 @@ function renderCostos() {
     'T4': [10, 11, 12]
   };
 
-  // Obtener zonas únicas presentes en costos
-  const zonas = [...new Set(DATA.costos.map(c => c['llave zona']))].sort();
+  const zonas = [...new Set(DATA.mantenimientos.map(x => x['Zona']))].sort();
 
   const fmt = n => 'S/ ' + Math.abs(n).toLocaleString();
-  const fmtDiff = n => (n < 0 ? '▼ ' : n > 0 ? '▲ ' : '') + fmt(n);
-  const diffColor = diff => diff < 0 ? 'var(--success)' : diff > 0 ? 'var(--danger)' : 'var(--text-muted)';
 
-  // Construir matriz: meses x zonas, separado por trimestre
-  let tablaHTML = '';
-
-  Object.entries(trimestres).forEach(([trim, meses]) => {
-    // Filas por mes, columnas por zona
-    const filasMes = meses.map(mes => {
-      const sitesDelMes = DATA.mantenimientos.filter(x => Number(x['MES_PROGRA']) === mes);
-
-      let totalMesAntes = 0, totalMesDespues = 0;
-      const celdas = zonas.map(zona => {
-        const sitesZona = sitesDelMes.filter(x => x['llave zona'] === zona);
-        const antes = sitesZona.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
-        const despues = sitesZona.filter(x => !x['revision']).reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
-        totalMesAntes += antes;
-        totalMesDespues += despues;
-        const diff = despues - antes;
-        return `<td style="font-family:'DM Mono',monospace;font-size:12px">
-                  <div>${fmt(antes)}</div>
-                  <div style="color:${diffColor(diff)};font-weight:600">${fmtDiff(diff)}</div>
-                </td>`;
-      }).join('');
-
-      const diffMes = totalMesDespues - totalMesAntes;
-      return `
-        <tr>
-          <td style="font-weight:500">Mes ${mes}</td>
-          ${celdas}
-          <td style="font-family:'DM Mono',monospace;font-weight:600;font-size:12px">
-            <div>${fmt(totalMesAntes)}</div>
-            <div style="color:${diffColor(diffMes)}">${fmtDiff(diffMes)}</div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-
-    tablaHTML += `
-      <tr style="background:var(--bg-secondary)">
-        <td colspan="${zonas.length + 2}" style="font-weight:700;padding:8px">${trim}</td>
-      </tr>
-      ${filasMes}
-    `;
+  const resumen = zonas.map(zona => {
+    const fila = { zona };
+    let totalZona = 0;
+    Object.entries(trimestres).forEach(([trim, meses]) => {
+      const sites = DATA.mantenimientos.filter(x =>
+        x['Zona'] === zona && meses.includes(Number(x['MES_PROGRA']))
+      );
+      const suma = sites.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
+      fila[trim] = suma;
+      totalZona += suma;
+    });
+    fila.total = totalZona;
+    return fila;
   });
 
-  // Totales generales por zona
-  let granTotalAntes = 0, granTotalDespues = 0;
-  const totalesZona = zonas.map(zona => {
-    const sitesZona = DATA.mantenimientos.filter(x => x['llave zona'] === zona);
-    const antes = sitesZona.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
-    const despues = sitesZona.filter(x => !x['revision']).reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
-    granTotalAntes += antes;
-    granTotalDespues += despues;
-    const diff = despues - antes;
-    return `<td style="font-family:'DM Mono',monospace;font-weight:600;font-size:12px">
-              <div>${fmt(antes)}</div>
-              <div style="color:${diffColor(diff)}">${fmtDiff(diff)}</div>
-            </td>`;
-  }).join('');
-
-  const granDiff = granTotalDespues - granTotalAntes;
+  const totalesTrim = {};
+  let totalGeneral = 0;
+  Object.keys(trimestres).forEach(trim => {
+    totalesTrim[trim] = resumen.reduce((s, r) => s + r[trim], 0);
+    totalGeneral += totalesTrim[trim];
+  });
 
   document.getElementById('costos-trimestral').innerHTML = `
     <table>
       <thead>
         <tr>
-          <th>Etiquetas de fila</th>
-          ${zonas.map(z => `<th>${z}</th>`).join('')}
+          <th>Zona</th>
+          ${Object.keys(trimestres).map(t => `<th>${t}</th>`).join('')}
           <th>Total general</th>
         </tr>
       </thead>
       <tbody>
-        ${tablaHTML}
+        ${resumen.map(r => `
+          <tr>
+            <td style="font-weight:500">${r.zona}</td>
+            ${Object.keys(trimestres).map(t => `<td style="font-family:'DM Mono',monospace">${fmt(r[t])}</td>`).join('')}
+            <td style="font-family:'DM Mono',monospace;font-weight:600">${fmt(r.total)}</td>
+          </tr>
+        `).join('')}
         <tr style="border-top:2px solid var(--border);font-weight:700">
           <td>Total general</td>
-          ${totalesZona}
-          <td style="font-family:'DM Mono',monospace;font-size:12px">
-            <div>${fmt(granTotalAntes)}</div>
-            <div style="color:${diffColor(granDiff)}">${fmtDiff(granDiff)}</div>
-          </td>
+          ${Object.keys(trimestres).map(t => `<td style="font-family:'DM Mono',monospace">${fmt(totalesTrim[t])}</td>`).join('')}
+          <td style="font-family:'DM Mono',monospace">${fmt(totalGeneral)}</td>
         </tr>
       </tbody>
     </table>
@@ -409,10 +371,10 @@ function renderCostos() {
 
   // Tabla de costos por tipo
   const tbody = document.getElementById('costos-body');
-  let totalGeneral = 0;
+  let totalGeneralCostos = 0;
   const filas = DATA.costos.map(item => {
     const costo = Number(item['Costo 2026']) || 0;
-    totalGeneral += costo;
+    totalGeneralCostos += costo;
     return `
       <tr>
         <td><span class="prioridad-badge baja">${item['llave zona'] ?? '—'}</span></td>
@@ -424,10 +386,11 @@ function renderCostos() {
   tbody.innerHTML = filas + `
     <tr style="border-top:2px solid var(--border);font-weight:600">
       <td style="text-align:right;font-size:13px">Total</td>
-      <td style="font-family:'DM Mono',monospace">S/ ${totalGeneral.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace">S/ ${totalGeneralCostos.toLocaleString()}</td>
     </tr>
   `;
 }
+
 function autocompleteSite() {
   const id = document.getElementById('repro-siteid').value.trim();
   const item = DATA.mantenimientos?.find(x => x['Site Id'] === id);
