@@ -315,7 +315,7 @@ padding: 6px 12px;
 cursor: pointer;
 transition: background 0.15s;
 }
-.btn-logout:hover { background: rgba(255,255,255,0.14); }
+.btn-logout:hover { background: rgb(255, 255, 255); }
 
 .dashboard-body {
 padding: 28px;
@@ -706,7 +706,7 @@ font-size: 13px;
   transition: background 0.15s, color 0.15s;
 }
 .topbar-tab:hover {
-  color: var(--text);
+  color: var(--border);
   text-decoration: underline;
 }
 .topbar-tab.active {

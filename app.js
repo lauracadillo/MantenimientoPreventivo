@@ -294,14 +294,14 @@ function switchTab(tab) {
   document.getElementById('view-detalle').style.display = isMain ? '' : 'none';
 
   if (tab === 'costos') {
+    document.getElementById('top-page-header').style.display = 'none';
     document.getElementById('view-costos').style.display = 'block';
-    document.getElementById('page-header').style.display = 'none';
     
     renderCostos();
   }
   if (tab === 'reprogramar') {
+    document.getElementById('top-page-header').style.display = 'none';
     document.getElementById('view-reprogramar').style.display = 'block';
-    document.getElementById('page-header').style.display = 'none';
   }
 }
 
