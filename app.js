@@ -323,8 +323,8 @@ function renderCostos() {
 
   const resumen = Object.entries(trimestres).map(([trim, meses]) => {
     const sitesDelTrim = DATA.mantenimientos.filter(x => meses.includes(Number(x['MES_PROGRA'])));
-    const antes = sitesDelTrim.reduce((sum, x) => sum + (costosMap[x['tipo']] || 0), 0);
-    const despues = sitesDelTrim.filter(x => !x['revision']).reduce((sum, x) => sum + (costosMap[x['tipo']] || 0), 0);
+    const antes = sitesDelTrim.reduce((sum, x) => sum + (costosMap[x['llave zona']] || 0), 0);
+    const despues = sitesDelTrim.filter(x => !x['revision']).reduce((sum, x) => sum + (costosMap[x['llave zona']] || 0), 0);
     const diff = despues - antes;
     return { trim, antes, despues, diff };
   });
