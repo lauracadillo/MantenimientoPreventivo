@@ -1,7 +1,7 @@
 let DATA = {};
 let filteredData = [];
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbydN6y-nw8GxG1R0L2SNWm1sHJQD1EhZnURVkrlXkBAqj6425QhqILj_T1WxR7nb6B4IQ/exec'; 
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjtLY_uTutp4ff-1VbLmKqjusVvEBrQ4EJvswq8Qbd2AU7l7IZPNz8Kk8EhsoIFKusYQ/exec'; 
 
 async function loadData() {
   try {
@@ -303,34 +303,31 @@ function switchTab(tab) {
 }
 
 function renderCostos() {
-  if (!DATA.mantenimientos) return;
-
-  const costosPorTipo = {
-    'P_1': 500, 'P_2': 450, 'P_3': 400,
-    'D_1': 350, 'D_2': 300, 'D_3': 250,
-    'B_1': 200, 'B_2': 180, 'B_3': 160
-  };
-
-  const agrupado = {};
-  DATA.mantenimientos.forEach(item => {
-    const tipo = item['tipo'] || 'Sin tipo';
-    if (!agrupado[tipo]) agrupado[tipo] = 0;
-    agrupado[tipo]++;
-  });
+  if (!DATA.costos) return;
 
   const tbody = document.getElementById('costos-body');
-  tbody.innerHTML = Object.entries(agrupado).map(([tipo, cantidad]) => {
-    const unitario = costosPorTipo[tipo] ?? 0;
-    const total = cantidad * unitario;
+
+  let totalGeneral = 0;
+
+  const filas = DATA.costos.map(item => {
+    const costo = item['Costo 2026'] ?? 0;
+    totalGeneral += costo;
     return `
       <tr>
-        <td><span class="prioridad-badge baja">${tipo}</span></td>
-        <td style="font-family:'DM Mono',monospace;text-align:center">${cantidad}</td>
-        <td style="font-family:'DM Mono',monospace">S/ ${unitario.toLocaleString()}</td>
-        <td style="font-family:'DM Mono',monospace;font-weight:600">S/ ${total.toLocaleString()}</td>
+        <td><span class="prioridad-badge baja">${item['llave pago'] ?? '—'}</span></td>
+        <td style="font-family:'DM Mono',monospace;font-weight:600">S/ ${costo.toLocaleString()}</td>
       </tr>
     `;
   }).join('');
+
+  const filaTotales = `
+    <tr style="border-top:2px solid var(--border);font-weight:600">
+      <td style="text-align:right;padding-right:16px;font-size:13px">Total general</td>
+      <td style="font-family:'DM Mono',monospace">S/ ${totalGeneral.toLocaleString()}</td>
+    </tr>
+  `;
+
+  tbody.innerHTML = filas + filaTotales;
 }
 
 function autocompleteSite() {
