@@ -720,3 +720,28 @@ font-size: 13px;
 .detalle-row:last-child { border-bottom: none; }
 .detalle-label { color: var(--text-muted); font-weight: 400; }
 .detalle-value { font-weight: 500; color: var(--text); text-align: right; }
+
+.topbar-nav {
+  display: flex;
+  gap: 4px;
+}
+.topbar-tab {
+  background: none;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.topbar-tab:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.topbar-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 500;
+}

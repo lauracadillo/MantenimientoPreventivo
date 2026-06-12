@@ -279,4 +279,103 @@ function switchView(view) {
   }
 }
 
+function switchTab(tab) {
+  // Tabs del header
+  document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.topbar-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+
+  // Ocultar todas las vistas de tab
+  document.querySelectorAll('.tab-view').forEach(v => v.style.display = 'none');
+
+  // Ocultar/mostrar secciones de la vista principal
+  const isMain = tab === 'Plan 2026';
+  document.querySelector('.kpi-grid').style.display = isMain ? '' : 'none';
+  document.querySelector('.table-card').style.display = isMain ? '' : 'none';
+  document.getElementById('view-detalle').style.display = isMain ? '' : 'none';
+
+  if (tab === 'costos') {
+    document.getElementById('view-costos').style.display = 'block';
+    renderCostos();
+  }
+  if (tab === 'reprogramar') {
+    document.getElementById('view-reprogramar').style.display = 'block';
+  }
+}
+
+function renderCostos() {
+  if (!DATA.mantenimientos) return;
+
+  const costosPorTipo = {
+    'P_1': 500, 'P_2': 450, 'P_3': 400,
+    'D_1': 350, 'D_2': 300, 'D_3': 250,
+    'B_1': 200, 'B_2': 180, 'B_3': 160
+  };
+
+  const agrupado = {};
+  DATA.mantenimientos.forEach(item => {
+    const tipo = item['tipo'] || 'Sin tipo';
+    if (!agrupado[tipo]) agrupado[tipo] = 0;
+    agrupado[tipo]++;
+  });
+
+  const tbody = document.getElementById('costos-body');
+  tbody.innerHTML = Object.entries(agrupado).map(([tipo, cantidad]) => {
+    const unitario = costosPorTipo[tipo] ?? 0;
+    const total = cantidad * unitario;
+    return `
+      <tr>
+        <td><span class="prioridad-badge baja">${tipo}</span></td>
+        <td style="font-family:'DM Mono',monospace;text-align:center">${cantidad}</td>
+        <td style="font-family:'DM Mono',monospace">S/ ${unitario.toLocaleString()}</td>
+        <td style="font-family:'DM Mono',monospace;font-weight:600">S/ ${total.toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function autocompleteSite() {
+  const id = document.getElementById('repro-siteid').value.trim();
+  const item = DATA.mantenimientos?.find(x => x['Site Id'] === id);
+  document.getElementById('repro-sitename').value = item?.['Site Name'] ?? '';
+  document.getElementById('repro-flm').value = item?.['FLM'] ?? '';
+  document.getElementById('repro-mes-actual').value = item?.['MES_PROGRA'] ?? '';
+}
+
+function submitReprogramacion() {
+  const siteId = document.getElementById('repro-siteid').value.trim();
+  const mesNuevo = document.getElementById('repro-mes-nuevo').value;
+  const motivo = document.getElementById('repro-motivo').value.trim();
+  const errEl = document.getElementById('repro-error');
+  const okEl = document.getElementById('repro-success');
+
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (!siteId || !mesNuevo || !motivo) {
+    errEl.textContent = 'Por favor completa todos los campos.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const item = DATA.mantenimientos?.find(x => x['Site Id'] === siteId);
+  if (!item) {
+    errEl.textContent = 'Site ID no encontrado.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Aquí puedes conectar con tu backend/Google Sheets
+  console.log('Reprogramación solicitada:', { siteId, mesNuevo, motivo });
+
+  okEl.textContent = `Solicitud enviada: ${siteId} reprogramado a ${mesNuevo}.`;
+  okEl.style.display = 'block';
+
+  // Limpiar
+  document.getElementById('repro-siteid').value = '';
+  document.getElementById('repro-sitename').value = '';
+  document.getElementById('repro-flm').value = '';
+  document.getElementById('repro-mes-actual').value = '';
+  document.getElementById('repro-mes-nuevo').value = '';
+  document.getElementById('repro-motivo').value = '';
+}
 

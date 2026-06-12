@@ -50,6 +50,11 @@
       </div>
       <span class="topbar-title">Rev Mantenimientos Preventivos</span>
       <div class="topbar-sep"></div>
+      <nav class="topbar-nav">
+        <button class="topbar-tab active" onclick="switchTab('Plan 2026')">Plan 2026</button>
+        <button class="topbar-tab" onclick="switchTab('costos')">Costos</button>
+        <button class="topbar-tab" onclick="switchTab('reprogramar')">Reprogramar</button>
+      </nav>
     </div>
     <div class="topbar-right">
       <div class="topbar-user">
@@ -154,7 +159,7 @@
     <div class="view" id="view-detalle">
       <div class="page-header">
         <div style="display:flex;align-items:center;gap:12px">
-          <button id="btn-volver" onclick="switchView('dashboard')" style="background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">
+          <button id="btn-volver" onclick="switchView('dashboard')" style="background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;display:none">
             ← Volver
           </button>
           <div>
@@ -206,8 +211,86 @@
         <span class="table-footer-info" id="footer-info">Mostrando todos los registros</span>
       </div>
     </div>
-  </div>
-</div>
+    <!-- VISTA: COSTOS -->
+    <div class="tab-view" id="view-costos" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Costos por tipo de local</h1>
+          <p>Resumen de costos agrupados por categoría</p>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <span class="table-toolbar-title">Tabla de costos</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="costos-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Costo unitario</th>
+                <th>Costo total</th>
+              </tr>
+            </thead>
+            <tbody id="costos-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: REPROGRAMAR -->
+    <div class="tab-view" id="view-reprogramar" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1>Reprogramar sitio</h1>
+          <p>Completa el formulario para solicitar la reprogramación de un mantenimiento</p>
+        </div>
+      </div>
+      <div class="table-card" style="max-width:600px">
+        <div style="padding:24px;display:flex;flex-direction:column;gap:16px">
+
+          <div class="field">
+            <label>Site ID</label>
+            <input type="text" id="repro-siteid" placeholder="Ej: PE-0001" oninput="autocompleteSite()">
+          </div>
+          <div class="field">
+            <label>Site Name</label>
+            <input type="text" id="repro-sitename" placeholder="Se completa automáticamente" readonly>
+          </div>
+          <div class="field">
+            <label>FLM</label>
+            <input type="text" id="repro-flm" placeholder="Se completa automáticamente" readonly>
+          </div>
+          <div class="field">
+            <label>Mes actual programado</label>
+            <input type="text" id="repro-mes-actual" placeholder="Se completa automáticamente" readonly>
+          </div>
+          <div class="field">
+            <label>Nuevo mes</label>
+            <select id="repro-mes-nuevo" class="filter-select" style="width:100%">
+              <option value="">Seleccionar mes</option>
+              <option>Enero</option><option>Febrero</option><option>Marzo</option>
+              <option>Abril</option><option>Mayo</option><option>Junio</option>
+              <option>Julio</option><option>Agosto</option><option>Septiembre</option>
+              <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Motivo</label>
+            <textarea id="repro-motivo" rows="3" placeholder="Describe el motivo de la reprogramación..."
+              style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--surface);color:var(--text);resize:vertical"></textarea>
+          </div>
+
+          <div id="repro-error" style="display:none;color:var(--danger,#e53e3e);font-size:13px"></div>
+          <div id="repro-success" style="display:none;color:var(--success,#38a169);font-size:13px"></div>
+
+          <button class="btn-primary" onclick="submitReprogramacion()">Enviar solicitud</button>
+        </div>
+      </div>
+    </div>
+      </div>
+    </div>
 <script src="app.js"></script>
 
 
