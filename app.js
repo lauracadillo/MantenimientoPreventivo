@@ -295,10 +295,13 @@ function switchTab(tab) {
 
   if (tab === 'costos') {
     document.getElementById('view-costos').style.display = 'block';
+    document.getElementById('page-header').style.display = 'none';
+    
     renderCostos();
   }
   if (tab === 'reprogramar') {
     document.getElementById('view-reprogramar').style.display = 'block';
+    document.getElementById('page-header').style.display = 'none';
   }
 }
 
