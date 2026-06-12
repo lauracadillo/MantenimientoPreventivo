@@ -314,20 +314,13 @@ function renderCostos() {
     totalGeneral += costo;
     return `
       <tr>
-        <td><span class="prioridad-badge baja">${item['llave pago'] ?? '—'}</span></td>
+        <td><span class="prioridad-badge baja">${item['llave zona'] ?? '—'}</span></td>
         <td style="font-family:'DM Mono',monospace;font-weight:600">S/ ${costo.toLocaleString()}</td>
       </tr>
     `;
   }).join('');
 
-  const filaTotales = `
-    <tr style="border-top:2px solid var(--border);font-weight:600">
-      <td style="text-align:right;padding-right:16px;font-size:13px">Total general</td>
-      <td style="font-family:'DM Mono',monospace">S/ ${totalGeneral.toLocaleString()}</td>
-    </tr>
-  `;
-
-  tbody.innerHTML = filas + filaTotales;
+  tbody.innerHTML = filas;
 }
 
 function autocompleteSite() {
