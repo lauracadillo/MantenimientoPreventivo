@@ -305,24 +305,88 @@ function switchTab(tab) {
 }
 
 function renderCostos() {
-  if (!DATA.costos) return;
+  if (!DATA.costos || !DATA.mantenimientos) return;
 
+  // Lookup costos por tipo
+  const costosMap = {};
+  DATA.costos.forEach(item => {
+    costosMap[item['llave pago']] = Number(item['Costo 2026']) || 0;
+  });
+
+  // Trimestres
+  const trimestres = {
+    'T1': [1, 2, 3],
+    'T2': [4, 5, 6],
+    'T3': [7, 8, 9],
+    'T4': [10, 11, 12]
+  };
+
+  const resumen = Object.entries(trimestres).map(([trim, meses]) => {
+    const sitesDelTrim = DATA.mantenimientos.filter(x => meses.includes(Number(x['MES_PROGRA'])));
+    const antes = sitesDelTrim.reduce((sum, x) => sum + (costosMap[x['tipo']] || 0), 0);
+    const despues = sitesDelTrim.filter(x => !x['revision']).reduce((sum, x) => sum + (costosMap[x['tipo']] || 0), 0);
+    const diff = despues - antes;
+    return { trim, antes, despues, diff };
+  });
+
+  const totalAntes = resumen.reduce((s, r) => s + r.antes, 0);
+  const totalDespues = resumen.reduce((s, r) => s + r.despues, 0);
+  const totalDiff = totalDespues - totalAntes;
+
+  const diffColor = diff => diff < 0 ? 'var(--success)' : diff > 0 ? 'var(--danger)' : 'var(--text-muted)';
+  const fmt = n => 'S/ ' + Math.abs(n).toLocaleString();
+  const fmtDiff = n => (n < 0 ? '▼ ' : n > 0 ? '▲ ' : '') + fmt(n);
+
+  // Inyectar tabla trimestral
+  document.getElementById('costos-trimestral').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Trimestre</th>
+          <th>Antes</th>
+          <th>Después</th>
+          <th>Diferencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${resumen.map(r => `
+          <tr>
+            <td style="font-weight:500">${r.trim}</td>
+            <td style="font-family:'DM Mono',monospace">${fmt(r.antes)}</td>
+            <td style="font-family:'DM Mono',monospace">${fmt(r.despues)}</td>
+            <td style="font-family:'DM Mono',monospace;color:${diffColor(r.diff)};font-weight:600">${fmtDiff(r.diff)}</td>
+          </tr>
+        `).join('')}
+        <tr style="border-top:2px solid var(--border);font-weight:600">
+          <td>Total anual</td>
+          <td style="font-family:'DM Mono',monospace">S/ ${totalAntes.toLocaleString()}</td>
+          <td style="font-family:'DM Mono',monospace">S/ ${totalDespues.toLocaleString()}</td>
+          <td style="font-family:'DM Mono',monospace;color:${diffColor(totalDiff)};font-weight:600">${fmtDiff(totalDiff)}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  // Tabla de costos por tipo (la que ya tenías)
   const tbody = document.getElementById('costos-body');
-
   let totalGeneral = 0;
-
   const filas = DATA.costos.map(item => {
-    const costo = item['Costo 2026'] ?? 0;
+    const costo = Number(item['Costo 2026']) || 0;
     totalGeneral += costo;
     return `
       <tr>
-        <td><span class="prioridad-badge baja">${item['llave zona'] ?? '—'}</span></td>
+        <td><span class="prioridad-badge baja">${item['llave pago'] ?? '—'}</span></td>
         <td style="font-family:'DM Mono',monospace;font-weight:600">S/ ${costo.toLocaleString()}</td>
       </tr>
     `;
   }).join('');
 
-  tbody.innerHTML = filas;
+  tbody.innerHTML = filas + `
+    <tr style="border-top:2px solid var(--border);font-weight:600">
+      <td style="text-align:right;font-size:13px">Total</td>
+      <td style="font-family:'DM Mono',monospace">S/ ${totalGeneral.toLocaleString()}</td>
+    </tr>
+  `;
 }
 
 function autocompleteSite() {

@@ -306,7 +306,7 @@ margin: 0 12px;
 
 .btn-logout {
 background: rgba(255,255,255,0.08);
-border: 1px solid rgba(255,255,255,0.15);
+border: 2px solid rgba(255,255,255,0.15);
 border-radius: 6px;
 color: rgba(255,255,255,0.7);
 font-family: 'DM Sans', sans-serif;
