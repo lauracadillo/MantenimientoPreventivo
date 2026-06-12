@@ -310,7 +310,7 @@ function renderCostos() {
   // Lookup costos por tipo
   const costosMap = {};
   DATA.costos.forEach(item => {
-    costosMap[item['llave pago']] = Number(item['Costo 2026']) || 0;
+    costosMap[item['llave zona']] = Number(item['Costo 2026']) || 0;
   });
 
   // Trimestres
@@ -375,7 +375,7 @@ function renderCostos() {
     totalGeneral += costo;
     return `
       <tr>
-        <td><span class="prioridad-badge baja">${item['llave pago'] ?? '—'}</span></td>
+        <td><span class="prioridad-badge baja">${item['llave zona'] ?? '—'}</span></td>
         <td style="font-family:'DM Mono',monospace;font-weight:600">S/ ${costo.toLocaleString()}</td>
       </tr>
     `;
