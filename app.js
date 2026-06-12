@@ -318,56 +318,80 @@ function renderCostos() {
   };
 
   const zonas = [...new Set(DATA.mantenimientos.map(x => x['Zona']))].sort();
-
   const fmt = n => 'S/ ' + Math.abs(n).toLocaleString();
 
-  const resumen = zonas.map(zona => {
-    const fila = { zona };
-    let totalZona = 0;
-    Object.entries(trimestres).forEach(([trim, meses]) => {
-      const sites = DATA.mantenimientos.filter(x =>
-        x['Zona'] === zona && meses.includes(Number(x['MES_PROGRA']))
-      );
-      const suma = sites.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
-      fila[trim] = suma;
-      totalZona += suma;
+  function construirTabla(filtrarRevision) {
+    const datos = filtrarRevision
+      ? DATA.mantenimientos.filter(x => !x['revision'])
+      : DATA.mantenimientos;
+
+    const resumen = zonas.map(zona => {
+      const fila = { zona };
+      let totalZona = 0;
+      Object.entries(trimestres).forEach(([trim, meses]) => {
+        const sites = datos.filter(x =>
+          x['Zona'] === zona && meses.includes(Number(x['MES_PROGRA']))
+        );
+        const suma = sites.reduce((s, x) => s + (costosMap[x['llave zona']] || 0), 0);
+        fila[trim] = suma;
+        totalZona += suma;
+      });
+      fila.total = totalZona;
+      return fila;
     });
-    fila.total = totalZona;
-    return fila;
-  });
 
-  const totalesTrim = {};
-  let totalGeneral = 0;
-  Object.keys(trimestres).forEach(trim => {
-    totalesTrim[trim] = resumen.reduce((s, r) => s + r[trim], 0);
-    totalGeneral += totalesTrim[trim];
-  });
+    const totalesTrim = {};
+    let totalGeneral = 0;
+    Object.keys(trimestres).forEach(trim => {
+      totalesTrim[trim] = resumen.reduce((s, r) => s + r[trim], 0);
+      totalGeneral += totalesTrim[trim];
+    });
 
-  document.getElementById('costos-trimestral').innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Zona</th>
-          ${Object.keys(trimestres).map(t => `<th>${t}</th>`).join('')}
-          <th>Total general</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${resumen.map(r => `
+    return `
+      <table>
+        <thead>
           <tr>
-            <td style="font-weight:500">${r.zona}</td>
-            ${Object.keys(trimestres).map(t => `<td style="font-family:'DM Mono',monospace">${fmt(r[t])}</td>`).join('')}
-            <td style="font-family:'DM Mono',monospace;font-weight:600">${fmt(r.total)}</td>
+            <th>Zona</th>
+            ${Object.keys(trimestres).map(t => `<th>${t}</th>`).join('')}
+            <th>Total general</th>
           </tr>
-        `).join('')}
-        <tr style="border-top:2px solid var(--border);font-weight:700">
-          <td>Total general</td>
-          ${Object.keys(trimestres).map(t => `<td style="font-family:'DM Mono',monospace">${fmt(totalesTrim[t])}</td>`).join('')}
-          <td style="font-family:'DM Mono',monospace">${fmt(totalGeneral)}</td>
-        </tr>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          ${resumen.map(r => `
+            <tr>
+              <td style="font-weight:500">${r.zona}</td>
+              ${Object.keys(trimestres).map(t => `<td style="font-family:'DM Mono',monospace">${fmt(r[t])}</td>`).join('')}
+              <td style="font-family:'DM Mono',monospace;font-weight:600">${fmt(r.total)}</td>
+            </tr>
+          `).join('')}
+          <tr style="border-top:2px solid var(--border);font-weight:700">
+            <td>Total general</td>
+            ${Object.keys(trimestres).map(t => `<td style="font-family:'DM Mono',monospace">${fmt(totalesTrim[t])}</td>`).join('')}
+            <td style="font-family:'DM Mono',monospace">${fmt(totalGeneral)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Vista normal
+  document.getElementById('costos-trimestral').innerHTML = `
+    <div style="margin-bottom:8px">
+      <button id="btn-toggle-revision" class="btn-secondary" style="font-size:12px;padding:4px 10px">
+        Ver excluyendo sitios con revisión
+      </button>
+    </div>
+    <div id="tabla-costos-wrapper">${construirTabla(false)}</div>
   `;
+
+  let mostrandoFiltrado = false;
+  document.getElementById('btn-toggle-revision').addEventListener('click', () => {
+    mostrandoFiltrado = !mostrandoFiltrado;
+    document.getElementById('tabla-costos-wrapper').innerHTML = construirTabla(mostrandoFiltrado);
+    document.getElementById('btn-toggle-revision').textContent = mostrandoFiltrado
+      ? 'Ver tabla original'
+      : 'Ver excluyendo sitios con revisión';
+  });
 
   // Tabla de costos por tipo
   const tbody = document.getElementById('costos-body');
@@ -390,7 +414,6 @@ function renderCostos() {
     </tr>
   `;
 }
-
 function autocompleteSite() {
   const id = document.getElementById('repro-siteid').value.trim();
   const item = DATA.mantenimientos?.find(x => x['Site Id'] === id);
