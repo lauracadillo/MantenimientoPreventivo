@@ -145,7 +145,6 @@ function variacionBadge(v) {
 }
 
 function renderTable(data) {
-  console.log(data.map(i => ({ id: i['Site Id'], prio: i['Priorizacion'] })));
 
   const tbody = document.getElementById('table-body');
   const noRes = document.getElementById('no-results');
@@ -165,8 +164,8 @@ function renderTable(data) {
   noRes.style.display = 'none';
 
   tbody.innerHTML = data.map(item => `
+    <tr class="${item['Priorizacion'] && item['Priorizacion'] !== null ? 'fila-priorizada' : ''}">
     <tr>
-      <td>${item['Priorizacion'] === '' ? '<span>-</span>' : '<span>☆</span>'}</td>
       <td>
         <span
           onclick="openDetalle('${item['Site Id']}')"

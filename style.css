@@ -729,10 +729,5 @@ transition: background 0.15s;
 }
 
 .fila-priorizada {
-  background-color: #1a64d464;
+  background-color: rgba(118, 171, 231, 0.749) !important;
 }
-
-.fila-priorizada:hover {
-  background-color: #e6f5ee !important;
-}
-
