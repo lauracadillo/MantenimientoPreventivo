@@ -192,7 +192,7 @@ function filterTable() {
   const estado = document.getElementById('filter-flm').value;
   const prioridad = document.getElementById('filter-prioridad').value;
   const revision = document.getElementById('filter-revision').value;
-  const mes = document.getElementById('filter-mes').value;
+  const mes = Number(document.getElementById('filter-mes').value);
 
   filteredData = DATA.mantenimientos.filter(item => {
     const matchSearch = !search ||
