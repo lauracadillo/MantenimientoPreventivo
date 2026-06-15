@@ -729,8 +729,7 @@ transition: background 0.15s;
 }
 
 .fila-priorizada {
-  border-left: 3px solid #2e7cf6;
-  background-color: rgba(245, 158, 11, 0.06);
+  background-color: #1a64d464;
 }
 
 .fila-priorizada:hover {
