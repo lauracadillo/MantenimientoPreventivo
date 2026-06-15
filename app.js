@@ -205,9 +205,9 @@ function filterTable() {
      const matchRevision = !revision ||
       (revision === 'excluir' && item['revision']) ||
       (revision === 'ok' && !item['revision']);
-    const matchMes = !mes || item['MES_PROGRA'] === mes;
+    const matchMes = !mes || item['MES_PR'] === mes;
     
-    return matchSearch && matchEstado && matchPrioridad  && matchRevision && matchMes;
+    return matchSearch && matchEstado && matchPrioridad && matchRevision && matchMes;
   });
 
   renderTable(filteredData);
