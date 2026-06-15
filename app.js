@@ -164,8 +164,8 @@ function renderTable(data) {
   noRes.style.display = 'none';
 
   tbody.innerHTML = data.map(item => `
-    <tr class="${item['Priorizacion'] && item['Priorizacion'] !== null ? 'fila-priorizada' : ''}">
     <tr>
+      <td>${item['Priorizacion'] === null ? '<span> </span>' : '<span>☆</span>'}</td>
       <td>
         <span
           onclick="openDetalle('${item['Site Id']}')"
