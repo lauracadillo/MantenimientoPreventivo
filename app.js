@@ -163,6 +163,7 @@ function renderTable(data) {
   noRes.style.display = 'none';
 
   tbody.innerHTML = data.map(item => `
+    <tr class="${item['Priorizacion'] ? 'fila-priorizada' : ''}">
     <tr>
       <td>
         <span
@@ -236,20 +237,13 @@ function openDetalle(siteId) {
   document.getElementById('detalle-subtitle').textContent = 'FLM: ' + item['FLM'] + ' · Mes programado: ' + item['MES_PROGRA'];
   document.getElementById('btn-volver').style.display = 'block';
   document.getElementById('detalle-grid').innerHTML = `
-    <div class="detalle-card">
-      <h3>Identificación</h3>
-      <div class="detalle-row"><span class="detalle-label">Site Id</span><span class="detalle-value" style="font-family:'DM Mono',monospace;color:var(--accent)">${item['Site Id']}</span></div>
-      <div class="detalle-row"><span class="detalle-label">Site Name</span><span class="detalle-value">${item['Site Name']}</span></div>
-      <div class="detalle-row"><span class="detalle-label">FLM</span><span class="detalle-value">${item['FLM']}</span></div>
-      <div class="detalle-row"><span class="detalle-label">Mes programado</span><span class="detalle-value">${item['MES_PROGRA']}</span></div>
-    </div>
 
     <div class="detalle-card">
-      <h3>Tipo y Frecuencia</h3>
+      <h3>Cambio de tipo y Frecuencia</h3>
+      <div class="detalle-row"><span class="detalle-label">¿Cambió de tipo?</span><span class="detalle-value">${variacionBadge(item['variacion'])}</span></div>
       <div class="detalle-row"><span class="detalle-label">Tipo anterior</span><span class="detalle-value">${item['tipo anterior']}</span></div>
       <div class="detalle-row"><span class="detalle-label">Tipo actual</span><span class="detalle-value">${item['tipo']}</span></div>
       <div class="detalle-row"><span class="detalle-label">Frecuencia</span><span class="detalle-value">${item['frecuencia ']}</span></div>
-      <div class="detalle-row"><span class="detalle-label">Variación</span><span class="detalle-value">${variacionBadge(item['variacion'])}</span></div>
     </div>
 
     <div class="detalle-card">
@@ -257,7 +251,9 @@ function openDetalle(siteId) {
       <div class="detalle-row"><span class="detalle-label">Blacklist</span><span class="detalle-value">${item['blacklist'] === 'Sí' ? '<span class="badge vencido">Sí</span>' : '<span class="badge completado">No</span>'}</span></div>
       <div class="detalle-row"><span class="detalle-label">Swap</span><span class="detalle-value">${item['swap'] || '—'}</span></div>
       <div class="detalle-row"><span class="detalle-label">Revisión</span><span class="detalle-value">${item['revision'] ? '<span class="badge vencido">Excluir</span>' : '<span class="badge completado">OK</span>'}</span></div>
-    </div>
+      <div class="detalle-row"><span class="detalle-label">Priorización Grobert</span><span class="detalle-value">${item['Priorizacion'] || '—'}</span></div>
+
+      </div>
 
     <div class="detalle-card">
       <h3>Mantenimientos</h3>

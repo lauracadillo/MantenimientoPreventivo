@@ -727,3 +727,13 @@ padding: 6px 12px;
 cursor: pointer;
 transition: background 0.15s;
 }
+
+.fila-priorizada {
+  border-left: 3px solid #2e7cf6;
+  background-color: rgba(245, 158, 11, 0.06);
+}
+
+.fila-priorizada:hover {
+  background-color: #e6f5ee !important;
+}
+
