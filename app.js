@@ -174,15 +174,10 @@ function renderTable(data) {
       <td>${item['Site Name'] || ''}</td>
       <td>${item['FLM'] || ''}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;text-align:center">${item['MES_PROGRA'] || ''}</td>
-      <td><span class="prioridad-badge media">${item['tipo anterior'] || ''}</span></td>
       <td><span class="prioridad-badge baja">${item['tipo'] || ''}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;text-align:center">${item['frecuencia'] ?? ''}</td>
-      <td>${variacionBadge(item['variacion'])}</td>
       <td>${item['blacklist'] === 'Sí' ? '<span class="badge vencido">Sí</span>' : '<span class="badge completado">No</span>'}</td>
       <td style="font-size:12px;color:var(--text-muted)">${item['swap'] || '—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted)">${item['ultimo_mp'] || '—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">${item['ultimo_mc'] || '—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;text-align:center;font-weight:600">${item['cantidad_mc'] ?? ''}</td>
       <td>${item['revision'] ? '<span class="badge vencido">Excluir</span>' : '<span class="badge completado">OK</span>'}</td>
     </tr>
   `).join('');
