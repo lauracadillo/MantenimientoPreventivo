@@ -112,7 +112,7 @@ function handleLogout() {
   document.getElementById('password').value = '';
   document.getElementById('login-error').style.display = 'none';
   document.getElementById('search-input').value = '';
-  document.getElementById('filter-estado').value = '';
+  document.getElementById('filter-flm').value = '';
   document.getElementById('filter-prioridad').value = '';
 }
 
@@ -189,20 +189,24 @@ function renderTable(data) {
 
 function filterTable() {
   const search = document.getElementById('search-input').value.toLowerCase();
-  const estado = document.getElementById('filter-estado').value;
+  const estado = document.getElementById('filter-flm').value;
   const prioridad = document.getElementById('filter-prioridad').value;
   const revision = document.getElementById('filter-revision').value;
+  const mes = document.getElementById('filter-mes').value;
 
   filteredData = DATA.mantenimientos.filter(item => {
     const matchSearch = !search ||
       (item['Site Id'] || '').toLowerCase().includes(search) ||
       (item['Site Name'] || '').toLowerCase().includes(search) ||
+      (item['MES_PROGRA'] || '').toLowerCase().includes(search) ||
       (item['FLM'] || '').toLowerCase().includes(search);
     const matchEstado = !estado || item['FLM'] === estado;
     const matchPrioridad = !prioridad || item['tipo'] === prioridad;
      const matchRevision = !revision ||
       (revision === 'excluir' && item['revision']) ||
       (revision === 'ok' && !item['revision']);
+    const matchMes = !mes || item['MES_PROGRA'] === mes;
+    
     return matchSearch && matchEstado && matchPrioridad && matchRevision;
   });
 
@@ -414,6 +418,7 @@ function renderCostos() {
     </tr>
   `;
 }
+
 function autocompleteSite() {
   const id = document.getElementById('repro-siteid').value.trim();
   const item = DATA.mantenimientos?.find(x => x['Site Id'] === id);

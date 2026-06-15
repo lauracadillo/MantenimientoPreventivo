@@ -714,3 +714,16 @@ font-size: 13px;
   color: var(--text);
   font-weight: 500;
 }
+
+
+.costos-trimestral {
+background: rgba(255,255,255,0.08);
+border: 2px solid rgba(255,255,255,0.15);
+border-radius: 6px;
+color: rgba(255,255,255,0.7);
+font-family: 'DM Sans', sans-serif;
+font-size: 12px;
+padding: 6px 12px;
+cursor: pointer;
+transition: background 0.15s;
+}
