@@ -1,7 +1,7 @@
 let DATA = {};
 let filteredData = [];
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjtLY_uTutp4ff-1VbLmKqjusVvEBrQ4EJvswq8Qbd2AU7l7IZPNz8Kk8EhsoIFKusYQ/exec'; 
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxEW_am4xG4Hha6sS2oH6eFVS01RlXwMpuoi7RNyAnpZyaTiWp__uC8g7W6vJna0hsSKA/exec'; 
 
 async function loadData() {
   try {
@@ -17,22 +17,14 @@ async function loadData() {
   }
 }
 
-function log(msg) {
-  console.log(msg);
-  // También lo muestra en la tabla para verlo sin abrir DevTools
-  document.getElementById('table-body').innerHTML =
-    `<tr><td colspan="14" style="padding:1rem;font-family:monospace;font-size:12px">${msg}</td></tr>`;
-}
 
 function loadDataJSONP() {
   return new Promise((resolve, reject) => {
-    log('📡 Iniciando JSONP...');
 
     const callbackName = 'sheetCallback_' + Date.now();
     const script = document.createElement('script');
 
     window[callbackName] = function(data) {
-      log('✅ Datos recibidos: ' + (data?.mantenimientos?.length ?? 0) + ' registros');
       DATA = data;
       filteredData = [...DATA.mantenimientos];
       delete window[callbackName];
@@ -41,19 +33,16 @@ function loadDataJSONP() {
     };
 
     script.onerror = (e) => {
-      log('❌ Error en script tag: ' + JSON.stringify(e));
       reject(new Error('JSONP falló'));
     };
 
     const url = SHEET_URL + '?callback=' + callbackName;
-    log('🔗 URL: ' + url);
     script.src = url;
     document.body.appendChild(script);
 
     // Timeout: si en 10s no responde, muestra error
     setTimeout(() => {
       if (window[callbackName]) {
-        log('⏱️ Timeout: no hubo respuesta en 10 segundos');
         reject(new Error('Timeout'));
       }
     }, 10000);
@@ -165,7 +154,7 @@ function renderTable(data) {
 
   tbody.innerHTML = data.map(item => `
     <tr>
-      <td>${item['Priorizacion'] === null ? '<span> </span>' : '<span>☆</span>'}</td>
+      <td>${item['Priorizacion'] === null ? '<span> </span>' : '<span>★</span>'}</td>
       <td>
         <span
           onclick="openDetalle('${item['Site Id']}')"
@@ -239,7 +228,7 @@ function openDetalle(siteId) {
       <div class="detalle-row"><span class="detalle-label">¿Cambió de tipo?</span><span class="detalle-value">${variacionBadge(item['variacion'])}</span></div>
       <div class="detalle-row"><span class="detalle-label">Tipo anterior</span><span class="detalle-value">${item['tipo anterior']}</span></div>
       <div class="detalle-row"><span class="detalle-label">Tipo actual</span><span class="detalle-value">${item['tipo']}</span></div>
-      <div class="detalle-row"><span class="detalle-label">Frecuencia</span><span class="detalle-value">${item['frecuencia ']}</span></div>
+      <div class="detalle-row"><span class="detalle-label">Frecuencia</span><span class="detalle-value">${item['frecuencia']}</span></div>
     </div>
 
     <div class="detalle-card">
@@ -253,8 +242,8 @@ function openDetalle(siteId) {
 
     <div class="detalle-card">
       <h3>Mantenimientos</h3>
-      <div class="detalle-row"><span class="detalle-label">Último MP</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['ultimo_mp'] || '—'}</span></div>
-      <div class="detalle-row"><span class="detalle-label">Último MC</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['ultimo_mc'] || '—'}</span></div>
+      <div class="detalle-row"><span class="detalle-label">Último MP</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['ultimo_mp'].toLocaleDateString('en-GB') || '—'}</span></div>
+      <div class="detalle-row"><span class="detalle-label">Último MC</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['ultimo_mc'].toLocaleDateString('en-GB') || '—'}</span></div>
       <div class="detalle-row"><span class="detalle-label">Cantidad MC</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['cantidad_mc'] ?? '—'}</span></div>
       ${item._comentario ? `<div class="detalle-row"><span class="detalle-label">Comentario</span><span class="detalle-value" style="color:var(--accent)">${item._comentario}</span></div>` : ''}
     </div>
@@ -442,7 +431,7 @@ function submitReprogramacion() {
     return;
   }
 
-  // Aquí puedes conectar con tu backend/Google Sheets
+  // TODO: CONECTAR CON GOOGLE SHEETS!!!!!
   console.log('Reprogramación solicitada:', { siteId, mesNuevo, motivo });
 
   okEl.textContent = `Solicitud enviada: ${siteId} reprogramado a ${mesNuevo}.`;
