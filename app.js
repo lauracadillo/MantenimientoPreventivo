@@ -145,6 +145,8 @@ function variacionBadge(v) {
 }
 
 function renderTable(data) {
+  console.log(data.map(i => ({ id: i['Site Id'], prio: i['Priorizacion'] })));
+
   const tbody = document.getElementById('table-body');
   const noRes = document.getElementById('no-results');
   const count = document.getElementById('table-count');
@@ -164,7 +166,7 @@ function renderTable(data) {
 
   tbody.innerHTML = data.map(item => `
     <tr>
-      <td>${item['Priorizacion'] !== '' ? '<span>☆</span>' : '<span> </span>'}</td>
+      <td>${item['Priorizacion'] === '' ? '<span>-</span>' : '<span>☆</span>'}</td>
       <td>
         <span
           onclick="openDetalle('${item['Site Id']}')"
