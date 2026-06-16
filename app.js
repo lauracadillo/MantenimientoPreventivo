@@ -214,6 +214,16 @@ function downloadExcel() {
   XLSX.writeFile(wb, 'mantenimientos.xlsx');
 }
 
+function formatFecha(fecha) {
+  if (!fecha) return '—';
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha; 
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const anio = d.getFullYear();
+  return `${dia}-${mes}-${anio}`;
+}
+
 function openDetalle(siteId) {
   const item = DATA.mantenimientos.find(x => x['Site Id'] === siteId);
   if (!item) return;
@@ -242,10 +252,15 @@ function openDetalle(siteId) {
 
     <div class="detalle-card">
       <h3>Mantenimientos</h3>
-      <div class="detalle-row"><span class="detalle-label">Último MP</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['ultimo_mp'].toLocaleDateString('en-GB') || '—'}</span></div>
-      <div class="detalle-row"><span class="detalle-label">Último MC</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['ultimo_mc'].toLocaleDateString('en-GB') || '—'}</span></div>
+      <div class="detalle-row"><span class="detalle-label">Último MP</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${formatFecha(item['ultimo_mp'])}</span></div>
+      <div class="detalle-row"><span class="detalle-label">Último MC</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${formatFecha(item['ultimo_mc'])}</span></div>
       <div class="detalle-row"><span class="detalle-label">Cantidad MC</span><span class="detalle-value" style="font-family:'DM Mono',monospace">${item['cantidad_mc'] ?? '—'}</span></div>
       ${item._comentario ? `<div class="detalle-row"><span class="detalle-label">Comentario</span><span class="detalle-value" style="color:var(--accent)">${item._comentario}</span></div>` : ''}
+      <div class="detalle-row" style="margin-top:12px">
+        <button class="btn-historico" onclick="openHistorico('${item['Site Id']}')">
+          Ver histórico de especialidades ejecutadas
+        </button>
+      </div>
     </div>
   `;
 
@@ -255,6 +270,52 @@ function openDetalle(siteId) {
   document.getElementById('view-detalle').classList.add('active');
 }
 
+function openHistorico(siteId) {
+  const registro = DATA.historico.find(x => x['Site Id'] === siteId);
+
+  const categorias = ['AA', 'GE-TTA-TK', 'IE', 'INV-AVR', 'LT', 'RADIO', 'REC-BB', 'SE-LT', 'SOL-EOL', 'TX-BH', 'TX', 'UPS'];
+
+  const filas = categorias
+    .map(cat => ({ cat, valor: registro?.[cat] ?? 0 }))
+    .sort((a, b) => b.valor - a.valor)
+    .map(({ cat, valor }) => `
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 10px;font-weight:500">${cat}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;text-align:center">
+          ${valor > 0 ? `<span class="badge completado">${valor}</span>` : '<span style="color:var(--text-muted)">—</span>'}
+        </td>
+        <td style="padding:8px 10px;width:50%">
+          <div style="background:var(--border);border-radius:9999px;height:6px;overflow:hidden">
+            <div style="background:var(--accent);height:100%;width:${Math.min(valor * 5, 100)}%;border-radius:9999px;transition:width 0.3s"></div>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+  const total = categorias.reduce((sum, cat) => sum + (registro?.[cat] ?? 0), 0);
+
+  document.getElementById('detalle-grid').innerHTML = `
+    <div class="detalle-card" style="grid-column: 1 / -1">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <h3 style="margin:0">Histórico de mantenimientos · ${siteId}</h3>
+        <button class="btn-historico" onclick="openDetalle('${siteId}')">← Volver al detalle</button>
+      </div>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
+        ${registro ? `Total registrado: <strong>${total}</strong> mantenimientos` : 'Sin registros históricos para este sitio'}
+      </p>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:6px 10px;color:var(--text-muted);font-weight:500">Categoría</th>
+            <th style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500">Cantidad</th>
+            <th style="text-align:left;padding:6px 10px;color:var(--text-muted);font-weight:500">Distribución</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    </div>
+  `;
+}
 function switchView(view) {
   if (view === 'dashboard') {
     document.getElementById('view-detalle').classList.remove('active');
