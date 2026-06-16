@@ -275,29 +275,32 @@ function openHistorico(siteId) {
 
   const categorias = ['AA', 'GE-TTA-TK', 'IE', 'INV-AVR', 'LT', 'RADIO', 'REC-BB', 'SE-LT', 'SOL-EOL', 'TX-BH', 'TX', 'UPS'];
 
-  const filas = categorias
-    .map(cat => ({ cat, valor: registro?.[cat] ?? 0 }))
-    .sort((a, b) => b.valor - a.valor)
-    .map(({ cat, valor }) => `
-      <tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:8px 10px;font-weight:500">${cat}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;text-align:center">
-          ${valor > 0 ? `<span class="badge completado">${valor}</span>` : '<span style="color:var(--text-muted)">—</span>'}
-        </td>
-        <td style="padding:8px 10px;width:50%">
-          <div style="background:var(--border);border-radius:9999px;height:6px;overflow:hidden">
-            <div style="background:var(--accent);height:100%;width:${Math.min(valor * 5, 100)}%;border-radius:9999px;transition:width 0.3s"></div>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+  const total = categorias.reduce((sum, cat) => sum + (Number(registro?.[cat]) || 0), 0);
 
-  const total = categorias.reduce((sum, cat) => sum + (registro?.[cat] ?? 0), 0);
+  // Agrupar de 4 en 4
+  const grupos = [];
+  for (let i = 0; i < categorias.length; i += 4) {
+    grupos.push(categorias.slice(i, i + 4));
+  }
+
+  const filasHTML = grupos.map(grupo => `
+    <tr style="border-bottom:1px solid var(--border)">
+      ${grupo.map(cat => {
+        const valor = Number(registro?.[cat]) || 0;
+        return `
+          <td style="padding:8px 10px;font-weight:500;color:var(--text-muted);font-size:12px">${cat}</td>
+          <td style="padding:8px 10px;font-family:'DM Mono',monospace;text-align:center;border-right:1px solid var(--border)">
+            ${valor > 0 ? `<span class="badge completado">${valor}</span>` : '<span style="color:var(--text-muted)">—</span>'}
+          </td>
+        `;
+      }).join('')}
+    </tr>
+  `).join('');
 
   document.getElementById('detalle-grid').innerHTML = `
     <div class="detalle-card" style="grid-column: 1 / -1">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <h3 style="margin:0">Histórico de mantenimientos · ${siteId}</h3>
+        <h3 style="margin:0">Histórico de especialidades · ${siteId}</h3>
         <button class="btn-historico" onclick="openDetalle('${siteId}')">← Volver al detalle</button>
       </div>
       <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
@@ -305,13 +308,13 @@ function openHistorico(siteId) {
       </p>
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead>
-          <tr style="border-bottom:2px solid var(--border)">
-            <th style="text-align:left;padding:6px 10px;color:var(--text-muted);font-weight:500">Categoría</th>
-            <th style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500">Cantidad</th>
-            <th style="text-align:left;padding:6px 10px;color:var(--text-muted);font-weight:500">Distribución</th>
+          <tr style="border-bottom:2px solid var(--border);background:var(--surface)">
+            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500;border-right:1px solid var(--border)">Grupo 1</th>
+            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500;border-right:1px solid var(--border)">Grupo 2</th>
+            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500">Grupo 3</th>
           </tr>
         </thead>
-        <tbody>${filas}</tbody>
+        <tbody>${filasHTML}</tbody>
       </table>
     </div>
   `;
