@@ -271,7 +271,7 @@ function openDetalle(siteId) {
 }
 
 function openHistorico(siteId) {
-  const registro = DATA.historico.find(x => x['Site Id'] === siteId);
+  const registro = DATA.historicos.find(x => x['Site Id'] === siteId);
 
   const categorias = ['AA', 'GE-TTA-TK', 'IE', 'INV-AVR', 'LT', 'RADIO', 'REC-BB', 'SE-LT', 'SOL-EOL', 'TX-BH', 'TX', 'UPS'];
 
