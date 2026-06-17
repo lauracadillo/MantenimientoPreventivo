@@ -502,7 +502,20 @@ async function submitReprogramacion() {
     return;
   }
   
+  const trimestreNuevo = getTrimestre(mesNuevo);
+  if (!trimestreNuevo) {
+    errEl.textContent = 'No se pudo determinar el trimestre para el mes seleccionado.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const totalSinSitio = totalTrimestre(trimestreNuevo, siteId);
+  const totalProyectado = totalSinSitio + costoRepro;
 
+  if (totalProyectado > LIMITE_TRIMESTRAL) {
+    const mensaje = `Esta reprogramación hará que el Trimestre ${trimestreNuevo} supere el límite establecido.\n\nTotal proyectado: $${totalProyectado.toLocaleString('en-US')}\nLímite: $${LIMITE_TRIMESTRAL.toLocaleString('en-US')}\n\n¿Deseas continuar de todas formas?`;
+    const continuar = await mostrarConfirmacion(mensaje);
+    if (!continuar) return; 
+  }
   try {
     const response = await fetch(SHEET_URL, {
       method: 'POST',
@@ -529,5 +542,53 @@ async function submitReprogramacion() {
     errEl.textContent = 'Hubo un error al enviar la solicitud. Intenta de nuevo.';
     errEl.style.display = 'block';
   }
+}
+
+const LIMITE_TRIMESTRAL = 150000; // <-- ajustar valor!!!!!
+
+const MES_A_TRIMESTRE = {
+  'Enero': 1, 'Febrero': 1, 'Marzo': 1,
+  'Abril': 2, 'Mayo': 2, 'Junio': 2,
+  'Julio': 3, 'Agosto': 3, 'Septiembre': 3,
+  'Octubre': 4, 'Noviembre': 4, 'Diciembre': 4
+};
+
+function getTrimestre(mes) {
+  return MES_A_TRIMESTRE[mes] || null;
+}
+
+function parseCosto(valor) {
+  if (typeof valor === 'number') return valor;
+  if (!valor) return 0;
+  return parseFloat(String(valor).replace(/[^0-9.-]/g, '')) || 0;
+}
+
+function totalTrimestre(trimestre, excluirSiteId) {
+  return DATA.mantenimientos
+    .filter(x => x['Site Id'] !== excluirSiteId && getTrimestre(x['MES_PROGRA']) === trimestre)
+    .reduce((sum, x) => sum + parseCosto(x['Costo 2026']), 0);
+}
+
+function mostrarConfirmacion(mensaje) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('confirm-modal');
+    const text = document.getElementById('confirm-modal-text');
+    const btnAceptar = document.getElementById('confirm-modal-accept');
+    const btnCancelar = document.getElementById('confirm-modal-cancel');
+
+    text.textContent = mensaje;
+    modal.style.display = 'flex';
+
+    function limpiar() {
+      modal.style.display = 'none';
+      btnAceptar.removeEventListener('click', onAceptar);
+      btnCancelar.removeEventListener('click', onCancelar);
+    }
+    function onAceptar() { limpiar(); resolve(true); }
+    function onCancelar() { limpiar(); resolve(false); }
+
+    btnAceptar.addEventListener('click', onAceptar);
+    btnCancelar.addEventListener('click', onCancelar);
+  });
 }
 
