@@ -501,12 +501,21 @@ async function submitReprogramacion() {
     errEl.style.display = 'block';
     return;
   }
-
+  console.log({
+    siteId,
+    sitename,
+    flm,
+    mesActual,
+    mesNuevo,
+    costoRepro,
+    motivo
+  });
+  
   try {
     const response = await fetch(SHEET_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ siteId, sitename, flm, mesActual, mesNuevo,costoRepro, motivo })
+      body: JSON.stringify({ siteId, sitename, flm, mesActual, mesNuevo, costoRepro, motivo })
     });
 
     const result = await response.json();
