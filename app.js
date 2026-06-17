@@ -1,7 +1,7 @@
 let DATA = {};
 let filteredData = [];
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw2ASBi_ygiktVFaadM7yb_z0cG6l3QPQfI3mr_ne1-7pwwc2Nq95IIYbhb0Si18t4KAA/exec'; 
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyWjFyZjf9MCABx9fF-WB5g1lIbY-gBeDeM9nHdNXAAWPBodTBsJKA70r3uTOrfXUVOWA/exec'; 
 
 async function loadData() {
   try {
@@ -501,16 +501,8 @@ async function submitReprogramacion() {
     errEl.style.display = 'block';
     return;
   }
-  console.log({
-    siteId,
-    sitename,
-    flm,
-    mesActual,
-    mesNuevo,
-    costoRepro,
-    motivo
-  });
   
+
   try {
     const response = await fetch(SHEET_URL, {
       method: 'POST',
