@@ -544,7 +544,7 @@ async function submitReprogramacion() {
   }
 }
 
-const LIMITE_TRIMESTRAL = 150000; // <-- ajustar valor!!!!!
+const LIMITE_TRIMESTRAL = 2000; // <-- ajustar valor!!!!!
 
 const MES_A_TRIMESTRE = {
   'Enero': 1, 'Febrero': 1, 'Marzo': 1,
