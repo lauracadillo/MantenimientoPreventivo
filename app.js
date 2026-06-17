@@ -473,8 +473,12 @@ function autocompleteSite() {
   document.getElementById('repro-mes-actual').value = item?.['MES_PROGRA'] ?? '';
 }
 
-function submitReprogramacion() {
+
+async function submitReprogramacion() {
   const siteId = document.getElementById('repro-siteid').value.trim();
+  const sitename = document.getElementById('repro-sitename').value.trim();
+  const flm = document.getElementById('repro-flm').value.trim();
+  const mesActual = document.getElementById('repro-mes-actual').value;
   const mesNuevo = document.getElementById('repro-mes-nuevo').value;
   const motivo = document.getElementById('repro-motivo').value.trim();
   const errEl = document.getElementById('repro-error');
@@ -496,18 +500,29 @@ function submitReprogramacion() {
     return;
   }
 
-  // TODO: CONECTAR CON GOOGLE SHEETS!!!!!
-  console.log('Reprogramación solicitada:', { siteId, mesNuevo, motivo });
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ siteId, sitename, flm, mesActual, mesNuevo, motivo })
+    });
 
-  okEl.textContent = `Solicitud enviada: ${siteId} reprogramado a ${mesNuevo}.`;
-  okEl.style.display = 'block';
+    const result = await response.json();
+    if (result.result !== 'success') throw new Error(result.error || 'Error desconocido');
 
-  // Limpiar
-  document.getElementById('repro-siteid').value = '';
-  document.getElementById('repro-sitename').value = '';
-  document.getElementById('repro-flm').value = '';
-  document.getElementById('repro-mes-actual').value = '';
-  document.getElementById('repro-mes-nuevo').value = '';
-  document.getElementById('repro-motivo').value = '';
+    okEl.textContent = `Solicitud enviada: ${siteId} reprogramado a ${mesNuevo}.`;
+    okEl.style.display = 'block';
+
+    document.getElementById('repro-siteid').value = '';
+    document.getElementById('repro-sitename').value = '';
+    document.getElementById('repro-flm').value = '';
+    document.getElementById('repro-mes-actual').value = '';
+    document.getElementById('repro-mes-nuevo').value = '';
+    document.getElementById('repro-motivo').value = '';
+  } catch (error) {
+    console.error(error);
+    errEl.textContent = 'Hubo un error al enviar la solicitud. Intenta de nuevo.';
+    errEl.style.display = 'block';
+  }
 }
 
