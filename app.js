@@ -497,7 +497,7 @@ async function submitReprogramacion() {
 
   const item = DATA.mantenimientos?.find(x => x['Site Id'] === siteId);
   if (!item) {
-    errEl.textContent = 'Site ID no encontrado.';
+    errEl.textContent = 'Site ID no encontrado en el plan 2026.';
     errEl.style.display = 'block';
     return;
   }
