@@ -1,7 +1,7 @@
 let DATA = {};
 let filteredData = [];
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyvxOZ6eVfy1yNEChNxooAV6m5TZuSwKC_y-ePnYCKxLIcnbR5O0zwI5kbPFBNnQ-yIBw/exec'; 
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxLvHZw-Pg6_kxveH8Fmi-_9znI4G1XatH_xu5lzRO-EofgqAsJnI9WhlDBT2c5Q8lz7w/exec'; 
 
 async function loadData() {
   try {
@@ -273,14 +273,14 @@ function openDetalle(siteId) {
 function openHistorico(siteId) {
   const registro = DATA.historicos.find(x => x['Site Id'] === siteId);
 
-  const categorias = ['AA', 'GE-TTA-TK', 'IE', 'INV-AVR', 'LT', 'RADIO', 'REC-BB', 'SE-LT', 'SOL-EOL', 'TX-BH', 'TX', 'UPS'];
+  const especialidades = ['AA', 'GE-TTA-TK', 'IE', 'INV-AVR', 'LT', 'RADIO', 'REC-BB', 'SE-LT', 'SOL-EOL', 'TX-BH', 'TX', 'UPS'];
 
-  const total = categorias.reduce((sum, cat) => sum + (Number(registro?.[cat]) || 0), 0);
+  const total = especialidades.reduce((sum, cat) => sum + (Number(registro?.[cat]) || 0), 0);
 
   // Agrupar de 4 en 4
   const grupos = [];
-  for (let i = 0; i < categorias.length; i += 4) {
-    grupos.push(categorias.slice(i, i + 4));
+  for (let i = 0; i < especialidades.length; i += 4) {
+    grupos.push(especialidades.slice(i, i + 4));
   }
 
   const filasHTML = grupos.map(grupo => `
@@ -290,7 +290,7 @@ function openHistorico(siteId) {
         return `
           <td style="padding:8px 10px;font-weight:500;color:var(--text-muted);font-size:12px">${cat}</td>
           <td style="padding:8px 10px;font-family:'DM Mono',monospace;text-align:center;border-right:1px solid var(--border)">
-            ${valor > 0 ? `<span class="badge completado">${valor}</span>` : '<span style="color:var(--text-muted)">—</span>'}
+            ${valor > 0 ? `<span>${valor}</span>` : '<span style="color:var(--text-muted)">—</span>'}
           </td>
         `;
       }).join('')}
@@ -309,9 +309,9 @@ function openHistorico(siteId) {
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead>
           <tr style="border-bottom:2px solid var(--border);background:var(--surface)">
-            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500;border-right:1px solid var(--border)">Grupo 1</th>
-            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500;border-right:1px solid var(--border)">Grupo 2</th>
-            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500">Grupo 3</th>
+            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500;border-right:1px solid var(--border)"> </th>
+            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500;border-right:1px solid var(--border)"> </th>
+            <th colspan="2" style="text-align:center;padding:6px 10px;color:var(--text-muted);font-weight:500"> </th>
           </tr>
         </thead>
         <tbody>${filasHTML}</tbody>
@@ -319,6 +319,7 @@ function openHistorico(siteId) {
     </div>
   `;
 }
+
 function switchView(view) {
   if (view === 'dashboard') {
     document.getElementById('view-detalle').classList.remove('active');
