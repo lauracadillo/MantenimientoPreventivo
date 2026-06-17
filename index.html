@@ -255,6 +255,7 @@
         <div>
           <h1>Reprogramar sitio</h1>
           <p>Completa el formulario para solicitar la reprogramación de un mantenimiento</p>
+          <p>Si no se autocompletan los demas datos, el Site no está dentro del plan2026</p>
         </div>
       </div>
       <div class="table-card" style="max-width:600px">
@@ -275,6 +276,10 @@
           <div class="field">
             <label>Mes actual programado</label>
             <input type="text" id="repro-mes-actual" placeholder="Se completa automáticamente" readonly>
+          </div>
+          <div class="field" style="display:none;">
+            <label>Costo site</label>
+            <input type="text" id="repro-costo" placeholder="Se completa automáticamente" readonly>
           </div>
           <div class="field">
             <label>Nuevo mes</label>

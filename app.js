@@ -471,6 +471,7 @@ function autocompleteSite() {
   document.getElementById('repro-sitename').value = item?.['Site Name'] ?? '';
   document.getElementById('repro-flm').value = item?.['FLM'] ?? '';
   document.getElementById('repro-mes-actual').value = item?.['MES_PROGRA'] ?? '';
+  document.getElementById("repro-costo").value = item?.["Costo 2026"] ?? "";
 }
 
 
@@ -480,6 +481,7 @@ async function submitReprogramacion() {
   const flm = document.getElementById('repro-flm').value.trim();
   const mesActual = document.getElementById('repro-mes-actual').value;
   const mesNuevo = document.getElementById('repro-mes-nuevo').value;
+  const costoRepro = document.getElementById('repro-costo').value;
   const motivo = document.getElementById('repro-motivo').value.trim();
   const errEl = document.getElementById('repro-error');
   const okEl = document.getElementById('repro-success');
@@ -504,7 +506,7 @@ async function submitReprogramacion() {
     const response = await fetch(SHEET_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ siteId, sitename, flm, mesActual, mesNuevo, motivo })
+      body: JSON.stringify({ siteId, sitename, flm, mesActual, mesNuevo,costoRepro, motivo })
     });
 
     const result = await response.json();
@@ -519,6 +521,8 @@ async function submitReprogramacion() {
     document.getElementById('repro-mes-actual').value = '';
     document.getElementById('repro-mes-nuevo').value = '';
     document.getElementById('repro-motivo').value = '';
+    document.getElementById('repro-costo').value = '';
+    document.getElementById
   } catch (error) {
     console.error(error);
     errEl.textContent = 'Hubo un error al enviar la solicitud. Intenta de nuevo.';
