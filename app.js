@@ -216,7 +216,7 @@ function openDetalle(siteId) {
   document.getElementById('detalle-subtitle').textContent = 'FLM: ' + item['FLM'] + ' · Mes programado: ' + item['MES_PROGRA'];
   document.getElementById('btn-volver').style.display = 'flex';
   document.getElementById('view-detalle').classList.add('active');
-  document.getElementById('view-detalle').style.display = 'flex';
+  document.getElementById('view-detalle').style.display = 'block';
   document.getElementById('detalle-grid').innerHTML = `
   
     <div class="detalle-card">
@@ -309,6 +309,7 @@ function openHistorico(siteId) {
 function switchView(view) {
   if (view === 'dashboard') {
     document.getElementById('view-detalle').classList.remove('active');
+    document.getElementById('view-detalle').style.display = 'none';
     document.getElementById('detalle-grid').innerHTML = '';
     document.getElementById('detalle-title').textContent = '';
     document.getElementById('detalle-subtitle').textContent = '';
