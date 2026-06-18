@@ -214,9 +214,11 @@ function openDetalle(siteId) {
 
   document.getElementById('detalle-title').textContent = item['Site Id'] + ' · ' + item['Site Name'];
   document.getElementById('detalle-subtitle').textContent = 'FLM: ' + item['FLM'] + ' · Mes programado: ' + item['MES_PROGRA'];
-  document.getElementById('btn-volver').style.display = 'block';
+  document.getElementById('btn-volver').style.display = 'flex';
+  document.getElementById('view-detalle').classList.add('active');
+  document.getElementById('view-detalle').style.display = 'flex';
   document.getElementById('detalle-grid').innerHTML = `
-
+  
     <div class="detalle-card">
       <h3>Cambio de tipo y Frecuencia</h3>
       <div class="detalle-row"><span class="detalle-label">¿Cambió de tipo?</span><span class="detalle-value">${variacionBadge(item['variacion'])}</span></div>
@@ -249,7 +251,6 @@ function openDetalle(siteId) {
 
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('view-detalle').classList.add('active');
 }
 
 function openHistorico(siteId) {
