@@ -1,0 +1,91 @@
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('mantenimientos');
+    
+    if (!sheet) {
+      const nombres = ss.getSheets().map(s => s.getName()).join(', ');
+      return responder(e, { error: 'Hoja no encontrada. Hojas disponibles: ' + nombres });
+    }
+
+    const rows = sheet.getDataRange().getValues();
+    
+    if (rows.length < 2) {
+      return responder(e, { error: 'La hoja está vacía o solo tiene encabezados' });
+    }
+
+    const headers = rows[0];
+    const data = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = row[i] === '' ? null : row[i]);
+      return obj;
+    });
+
+    // ── Costos ──
+    const costos = leerHojaComoObjetos(ss, 'costos2026');
+
+    // ── Históricos ──
+    const historicos = leerHojaComoObjetos(ss, 'historicos');
+
+    return responder(e, { mantenimientos: data, costos: costos, historicos: historicos });
+
+  } catch(err) {
+    return responder(e, { error: err.message, stack: err.stack });
+  }
+}
+
+// Función auxiliar para leer cualquier hoja y convertirla en array de objetos
+function leerHojaComoObjetos(ss, nombreHoja) {
+  const sheet = ss.getSheetByName(nombreHoja);
+  if (!sheet) return [];
+
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return [];
+
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] === '' ? null : row[i]);
+    return obj;
+  });
+}
+
+function responder(e, data) {
+  const json = JSON.stringify(data);
+  const callback = e && e.parameter && e.parameter.callback;
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService
+    .createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Reprogramaciones') || ss.insertSheet('Reprogramaciones');
+
+    sheet.appendRow([
+      new Date(),
+      data.siteId,
+      data.sitename || '',
+      data.flm || '',
+      data.mesActual || '',
+      data.mesNuevo,
+      data.costoRepro || '',
+      data.motivo
+    ]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: 'success' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: 'error', error: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}

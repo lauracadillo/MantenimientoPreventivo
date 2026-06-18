@@ -1,60 +1,23 @@
+// ============================================================
+// CONFIGURACIÓN INICIAL
+// ============================================================
+
 let DATA = {};
 let filteredData = [];
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyWjFyZjf9MCABx9fF-WB5g1lIbY-gBeDeM9nHdNXAAWPBodTBsJKA70r3uTOrfXUVOWA/exec'; 
-
-async function loadData() {
-  try {
-    const res = await fetch(SHEET_URL, {
-      method: 'GET',
-      redirect: 'follow',
-    });
-    const text = await res.text();
-    DATA = JSON.parse(text);
-    filteredData = [...DATA.mantenimientos];
-  } catch (err) {
-    return loadDataJSONP();
-  }
-}
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyWjFyZjf9MCABx9fF-WB5g1lIbY-gBeDeM9nHdNXAAWPBodTBsJKA70r3uTOrfXUVOWA/exec';
 
 
-function loadDataJSONP() {
-  return new Promise((resolve, reject) => {
-
-    const callbackName = 'sheetCallback_' + Date.now();
-    const script = document.createElement('script');
-
-    window[callbackName] = function(data) {
-      DATA = data;
-      filteredData = [...DATA.mantenimientos];
-      delete window[callbackName];
-      document.body.removeChild(script);
-      resolve();
-    };
-
-    script.onerror = (e) => {
-      reject(new Error('JSONP falló'));
-    };
-
-    const url = SHEET_URL + '?callback=' + callbackName;
-    script.src = url;
-    document.body.appendChild(script);
-
-    // Timeout: si en 10s no responde, muestra error
-    setTimeout(() => {
-      if (window[callbackName]) {
-        reject(new Error('Timeout'));
-      }
-    }, 10000);
-  });
-}
+// ============================================================
+// CARGA DE DATOS
+// ============================================================
 
 function loadDataJSONP() {
   return new Promise((resolve, reject) => {
     const callbackName = 'sheetCallback_' + Date.now();
     const script = document.createElement('script');
 
-    window[callbackName] = function(data) {
+    window[callbackName] = function (data) {
       DATA = data;
       filteredData = [...DATA.mantenimientos];
       delete window[callbackName];
@@ -71,20 +34,27 @@ function loadDataJSONP() {
 async function loadData() {
   return loadDataJSONP();
 }
+
+
+// ============================================================
+// AUTENTICACIÓN
+// ============================================================
+
 async function handleLogin() {
   const user = document.getElementById('username').value.trim();
   const pass = document.getElementById('password').value;
   const err = document.getElementById('login-error');
 
+  // TODO: login también desde un Apps Script para mayor seguridad
   if (user === 'admin' && pass === '1234') {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard-screen').style.display = 'block';
 
-    // Muestra un loading mientras carga
+    // TODO: reemplazar por ícono de carga en toda la página
     document.getElementById('table-body').innerHTML =
       '<tr><td colspan="14" style="text-align:center;padding:2rem">Cargando datos...</td></tr>';
 
-    await loadData(); 
+    await loadData();
 
     renderKPIs(DATA.mantenimientos);
     renderTable(DATA.mantenimientos);
@@ -112,17 +82,19 @@ document.getElementById('username').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('password').focus();
 });
 
-function renderKPIs(data) {
-  const d = data ?? DATA.mantenimientos;
 
-  document.getElementById('kpi-total').textContent = d.length;
-  document.getElementById('kpi-excluidos').textContent = d.filter(x => x['revision'] && x['revision'] !== '').length;
-  document.getElementById('kpi-blacklist').textContent = d.filter(x => 
-    x['blacklist'] === 'Si' || x['blacklist'] === 'Sí'
-  ).length;
-  document.getElementById('kpi-swap').textContent = d.filter(x => 
-    x['swap'] && x['swap'] !== 'No' && x['swap'] !== ''
-  ).length;
+// ============================================================
+// UTILIDADES
+// ============================================================
+
+function formatFecha(fecha) {
+  if (!fecha) return '—';
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha;
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const anio = d.getFullYear();
+  return `${dia}-${mes}-${anio}`;
 }
 
 function variacionBadge(v) {
@@ -133,8 +105,25 @@ function variacionBadge(v) {
   return '<span style="font-size:12px">' + v + '</span>';
 }
 
-function renderTable(data) {
 
+// ============================================================
+// VISTA PRINCIPAL — KPIs Y TABLA
+// ============================================================
+
+function renderKPIs(data) {
+  const d = data ?? DATA.mantenimientos;
+
+  document.getElementById('kpi-total').textContent = d.length;
+  document.getElementById('kpi-excluidos').textContent = d.filter(x => x['revision'] && x['revision'] !== '').length;
+  document.getElementById('kpi-blacklist').textContent = d.filter(x =>
+    x['blacklist'] === 'Si' || x['blacklist'] === 'Sí'
+  ).length;
+  document.getElementById('kpi-swap').textContent = d.filter(x =>
+    x['swap'] && x['swap'] !== 'No' && x['swap'] !== ''
+  ).length;
+}
+
+function renderTable(data) {
   const tbody = document.getElementById('table-body');
   const noRes = document.getElementById('no-results');
   const count = document.getElementById('table-count');
@@ -143,7 +132,7 @@ function renderTable(data) {
   count.textContent = data.length + ' registro' + (data.length !== 1 ? 's' : '');
   footer.textContent = data.length === DATA.mantenimientos.length
     ? 'Mostrando todos los registros'
-    : 'Filtrando: ' + data.length + ' de ' + DATA.mantenimientos.length + ' registros';
+    : 'Filtro: ' + data.length + ' de ' + DATA.mantenimientos.length + ' registros';
 
   if (data.length === 0) {
     tbody.innerHTML = '';
@@ -188,11 +177,11 @@ function filterTable() {
       (item['FLM'] || '').toLowerCase().includes(search);
     const matchEstado = !estado || item['FLM'] === estado;
     const matchPrioridad = !prioridad || item['tipo'] === prioridad;
-     const matchRevision = !revision ||
+    const matchRevision = !revision ||
       (revision === 'excluir' && item['revision']) ||
       (revision === 'ok' && !item['revision']);
     const matchMes = !mes || item['MES_PROGRA'] === mes;
-    
+
     return matchSearch && matchEstado && matchPrioridad && matchRevision && matchMes;
   });
 
@@ -201,7 +190,7 @@ function filterTable() {
 }
 
 function downloadExcel() {
-  const keys = ['Site Id','Site Name','FLM','MES_PROGRA','tipo anterior','tipo','frecuencia ','variacion','blacklist','swap','ultimo_mp','ultimo_mc','cantidad_mc','revision'];
+  const keys = ['Site Id', 'Site Name', 'FLM', 'MES_PROGRA', 'tipo anterior', 'tipo', 'frecuencia ', 'variacion', 'blacklist', 'swap', 'ultimo_mp', 'ultimo_mc', 'cantidad_mc', 'revision'];
 
   const ws = XLSX.utils.json_to_sheet(filteredData.map(item => {
     const row = {};
@@ -214,15 +203,10 @@ function downloadExcel() {
   XLSX.writeFile(wb, 'mantenimientos.xlsx');
 }
 
-function formatFecha(fecha) {
-  if (!fecha) return '—';
-  const d = new Date(fecha);
-  if (isNaN(d)) return fecha; 
-  const dia = String(d.getDate()).padStart(2, '0');
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
-  const anio = d.getFullYear();
-  return `${dia}-${mes}-${anio}`;
-}
+
+// ============================================================
+// VISTA DETALLE DE SITIO
+// ============================================================
 
 function openDetalle(siteId) {
   const item = DATA.mantenimientos.find(x => x['Site Id'] === siteId);
@@ -247,8 +231,7 @@ function openDetalle(siteId) {
       <div class="detalle-row"><span class="detalle-label">Swap</span><span class="detalle-value">${item['swap'] || '—'}</span></div>
       <div class="detalle-row"><span class="detalle-label">Revisión</span><span class="detalle-value">${item['revision'] ? '<span class="badge vencido">Excluir</span>' : '<span class="badge completado">OK</span>'}</span></div>
       <div class="detalle-row"><span class="detalle-label">Priorización Grobert</span><span class="detalle-value">${item['Priorizacion'] || '—'}</span></div>
-
-      </div>
+    </div>
 
     <div class="detalle-card">
       <h3>Mantenimientos</h3>
@@ -264,7 +247,6 @@ function openDetalle(siteId) {
     </div>
   `;
 
-  // Navegar a la vista
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('view-detalle').classList.add('active');
@@ -272,12 +254,10 @@ function openDetalle(siteId) {
 
 function openHistorico(siteId) {
   const registro = DATA.historicos.find(x => x['Site Id'] === siteId);
-
   const especialidades = ['AA', 'GE-TTA-TK', 'IE', 'INV-AVR', 'LT', 'RADIO', 'REC-BB', 'SE-LT', 'SOL-EOL', 'TX-BH', 'TX', 'UPS'];
-
   const total = especialidades.reduce((sum, cat) => sum + (Number(registro?.[cat]) || 0), 0);
 
-  // Agrupar de 4 en 4
+
   const grupos = [];
   for (let i = 0; i < especialidades.length; i += 4) {
     grupos.push(especialidades.slice(i, i + 4));
@@ -320,6 +300,11 @@ function openHistorico(siteId) {
   `;
 }
 
+
+// ============================================================
+// NAVEGACIÓN ENTRE VISTAS Y TABS
+// ============================================================
+
 function switchView(view) {
   if (view === 'dashboard') {
     document.getElementById('view-detalle').classList.remove('active');
@@ -330,14 +315,11 @@ function switchView(view) {
 }
 
 function switchTab(tab) {
-  // Tabs del header
   document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.topbar-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
 
-  // Ocultar todas las vistas de tab
   document.querySelectorAll('.tab-view').forEach(v => v.style.display = 'none');
 
-  // Ocultar/mostrar secciones de la vista principal
   const isMain = tab === 'Plan 2026';
   document.getElementById('top-page-header').style.display = isMain ? '' : 'none';
   document.querySelector('.kpi-grid').style.display = isMain ? '' : 'none';
@@ -346,13 +328,17 @@ function switchTab(tab) {
 
   if (tab === 'costos') {
     document.getElementById('view-costos').style.display = 'block';
-    
     renderCostos();
   }
   if (tab === 'reprogramar') {
     document.getElementById('view-reprogramar').style.display = 'block';
   }
 }
+
+
+// ============================================================
+// VISTA COSTOS
+// ============================================================
 
 function renderCostos() {
   if (!DATA.costos || !DATA.mantenimientos) return;
@@ -424,7 +410,6 @@ function renderCostos() {
     `;
   }
 
-  // Vista normal
   document.getElementById('costos-trimestral').innerHTML = `
     <div style="margin-bottom:8px">
       <button id="btn-toggle-revision" class="btn-secondary" style="font-size:12px;padding:4px 10px">
@@ -465,15 +450,19 @@ function renderCostos() {
   `;
 }
 
+
+// ============================================================
+// VISTA REPROGRAMACIÓN
+// ============================================================
+
 function autocompleteSite() {
   const id = document.getElementById('repro-siteid').value.trim();
   const item = DATA.mantenimientos?.find(x => x['Site Id'] === id);
   document.getElementById('repro-sitename').value = item?.['Site Name'] ?? '';
   document.getElementById('repro-flm').value = item?.['FLM'] ?? '';
   document.getElementById('repro-mes-actual').value = item?.['MES_PROGRA'] ?? '';
-  document.getElementById("repro-costo").value = item?.["Costo 2026"] ?? "";
+  document.getElementById('repro-costo').value = item?.['Costo 2026'] ?? '';
 }
-
 
 async function submitReprogramacion() {
   const siteId = document.getElementById('repro-siteid').value.trim();
@@ -501,21 +490,7 @@ async function submitReprogramacion() {
     errEl.style.display = 'block';
     return;
   }
-  
-  const trimestreNuevo = getTrimestre(mesNuevo);
-  if (!trimestreNuevo) {
-    errEl.textContent = 'No se pudo determinar el trimestre para el mes seleccionado.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const totalSinSitio = totalTrimestre(trimestreNuevo, siteId);
-  const totalProyectado = totalSinSitio + costoRepro;
 
-  if (totalProyectado > LIMITE_TRIMESTRAL) {
-    const mensaje = `Esta reprogramación hará que el Trimestre ${trimestreNuevo} supere el límite establecido.\n\nTotal proyectado: $${totalProyectado.toLocaleString('en-US')}\nLímite: $${LIMITE_TRIMESTRAL.toLocaleString('en-US')}\n\n¿Deseas continuar de todas formas?`;
-    const continuar = await mostrarConfirmacion(mensaje);
-    if (!continuar) return; 
-  }
   try {
     const response = await fetch(SHEET_URL, {
       method: 'POST',
@@ -536,59 +511,9 @@ async function submitReprogramacion() {
     document.getElementById('repro-mes-nuevo').value = '';
     document.getElementById('repro-motivo').value = '';
     document.getElementById('repro-costo').value = '';
-    document.getElementById
   } catch (error) {
     console.error(error);
     errEl.textContent = 'Hubo un error al enviar la solicitud. Intenta de nuevo.';
     errEl.style.display = 'block';
   }
 }
-
-const LIMITE_TRIMESTRAL = 2000; // <-- ajustar valor!!!!!
-
-const MES_A_TRIMESTRE = {
-  'Enero': 1, 'Febrero': 1, 'Marzo': 1,
-  'Abril': 2, 'Mayo': 2, 'Junio': 2,
-  'Julio': 3, 'Agosto': 3, 'Septiembre': 3,
-  'Octubre': 4, 'Noviembre': 4, 'Diciembre': 4
-};
-
-function getTrimestre(mes) {
-  return MES_A_TRIMESTRE[mes] || null;
-}
-
-function parseCosto(valor) {
-  if (typeof valor === 'number') return valor;
-  if (!valor) return 0;
-  return parseFloat(String(valor).replace(/[^0-9.-]/g, '')) || 0;
-}
-
-function totalTrimestre(trimestre, excluirSiteId) {
-  return DATA.mantenimientos
-    .filter(x => x['Site Id'] !== excluirSiteId && getTrimestre(x['MES_PROGRA']) === trimestre)
-    .reduce((sum, x) => sum + parseCosto(x['Costo 2026']), 0);
-}
-
-function mostrarConfirmacion(mensaje) {
-  return new Promise(resolve => {
-    const modal = document.getElementById('confirm-modal');
-    const text = document.getElementById('confirm-modal-text');
-    const btnAceptar = document.getElementById('confirm-modal-accept');
-    const btnCancelar = document.getElementById('confirm-modal-cancel');
-
-    text.textContent = mensaje;
-    modal.style.display = 'flex';
-
-    function limpiar() {
-      modal.style.display = 'none';
-      btnAceptar.removeEventListener('click', onAceptar);
-      btnCancelar.removeEventListener('click', onCancelar);
-    }
-    function onAceptar() { limpiar(); resolve(true); }
-    function onCancelar() { limpiar(); resolve(false); }
-
-    btnAceptar.addEventListener('click', onAceptar);
-    btnCancelar.addEventListener('click', onCancelar);
-  });
-}
-
